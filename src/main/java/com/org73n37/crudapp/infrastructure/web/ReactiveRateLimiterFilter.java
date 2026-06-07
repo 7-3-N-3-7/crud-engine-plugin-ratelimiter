@@ -44,9 +44,11 @@ public class ReactiveRateLimiterFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String ip = exchange.getRequest().getRemoteAddress() != null 
-                ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() 
-                : "unknown";
+        String ip = "unknown";
+        if (exchange.getRequest().getRemoteAddress() != null) {
+            java.net.InetSocketAddress addr = exchange.getRequest().getRemoteAddress();
+            ip = addr.getAddress() != null ? addr.getAddress().getHostAddress() : addr.getHostString();
+        }
 
         TokenBucket bucket = ipBuckets.computeIfAbsent(ip, k -> new TokenBucket(MAX_TOKENS, REFILL_DURATION_MS));
 
